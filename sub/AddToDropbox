@@ -1,0 +1,9 @@
+sub AddToDropbox()
+	Dropbox Add "DirPicker", destpathname$
+	Dropbox Select "DirPicker", dropbox count "DirPicker"
+end sub
+
+
+
+
+

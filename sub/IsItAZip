@@ -1,0 +1,9 @@
+sub IsItAZip()
+	system("mimeset -f " + chr$(39) + filename$ + chr$(39))
+	if (left$(system$("catattr -d BEOS:TYPE '" + filename$ + "'"), 15)) <> "application/zip" then 
+		alert filename$ + "\n does not look like a zip file! Please check and fix in Tracker", "OK", "warning"
+		return 0
+	else
+		return 1
+	endif
+end sub

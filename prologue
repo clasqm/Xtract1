@@ -1,0 +1,39 @@
+#!env yab
+
+//Xtract1
+//Program to extract a single file from a Zip file
+
+//Michel Clasquin-Johnson
+//Public Domain Software 2009-2014
+
+//GLOBAL VARIABLES - just for reference: yab does not demand declaration of these
+everyCommand=1 // counter for main loop
+itemselected=1 // item selected in list
+filename$ = ""
+destpathname$="/boot/home/Desktop"
+Settingsfile$ = "/boot/home/config/settings/ExtractOne.settings"
+UpdateFile$ = "http://mysite.mweb.co.za/residents/clasqm/haiku/yab-apps/XTract1version.txt"
+AppVersion$ = "v0.4.1"
+
+//Housekeeping
+//put MainWindow size coordinates in variables
+MWxsize = 300
+MWysize = 175
+//see if a settings file exist. If so, read positions
+CheckFirstUse()
+
+// set DEBUG = 1 to print out all messages on the console
+DEBUG = 0
+
+//Create Interface
+OpenWindow()
+
+if peek("argument") > 0 then
+	filename$ = peek$("argument")
+	filename$ = StripBackspaces$(filename$)
+	GetNames(filename$)
+	FillOutItems()
+endif
+
+FindUpdates()
+

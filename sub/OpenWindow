@@ -1,0 +1,26 @@
+// Setup the main window here
+sub OpenWindow()
+	window open MWxpos,MWypos to (MWxsize + MWxpos),(MWysize + MWypos), "MainWindow", "Xtract1"
+	window set "MainWindow", "Flags", "Not-Resizable, Not-Zoomable"
+	Text 15,8,"uptext", "Drop zip file & select destination directory", "MainWindow"
+	DropBox 0,25 to 200,49, "DirPicker", "", "MainWindow"
+	tooltip "DirPicker", "Select a previously used directory."
+	DropBox Add "DirPicker", "/boot/home/Desktop"
+	DropBox Add "DirPicker", "/boot/home"
+	if destpathname$ <> "/boot/home/Desktop" AddToDropbox()
+	Button 201, 25 to 299,49, "DirButton", "Select Dir", "MainWindow"
+	tooltip "DirButton", "Select a new extraction destination"
+	ListBox 1,54 to 299,148, "CollList", 1, "MainWindow"
+	Button 152,150 to 300,175, "ExtractButton", "Extract this file", "MainWindow"
+	Option set "ExtractButton", "isenabled", 0
+	view 0, 150 to 150,175, "DropHere", "MainWindow"
+	View Dropzone "DropHere"
+	Draw Set 1, "HighSolidFill"
+	Draw Rect 1,1 to 150,24, "DropHere"
+	Text 20, 7, "dropheretext", "Drop zip file HERE", "DropHere"
+	tooltip "DropHere", "Drop the zip file here."
+end sub
+
+
+
+

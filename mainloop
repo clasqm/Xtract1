@@ -1,0 +1,54 @@
+// Main Message Loop
+dim msg$(1)
+while(not leavingLoop)
+	nCommands = token(message$, msg$(), "|")
+
+	for everyCommand = 1 to nCommands
+		if(DEBUG and msg$(everyCommand)<>"") print msg$(everyCommand)
+
+		switch(msg$(everyCommand))
+			case "_QuitRequested":
+			case "MainWindow:_QuitRequested":
+				//first save window position and last directory
+				WritePref()
+				leavingLoop = true
+				break
+			case "DirButton"
+				destpathname$= Filepanel "Load-Directory", "Select extraction directory", destpathname$
+				if destpathname$ <>"" then
+					AddToDropbox()
+					WritePref()
+				endif
+				break
+			case "ExtractButton"
+				UnzipFile()
+				break
+			default:
+				break
+		end switch
+
+	//Some actions that don't lend themselves to the switch loop
+		if left$(msg$(everyCommand),9)="CollList:" then
+			itemselected= Listbox Get "CollList"
+		endif
+		if left$(msg$(everyCommand),18) ="DropHere:_Dropped:" then
+			GetNames(mid$(msg$(everyCommand),19))
+			FillOutItems()
+		endif
+		if left$(msg$(everyCommand),10) ="DirPicker:" then 
+			destpathname$ = mid$(msg$(everyCommand),11)
+			WritePref()
+		endif
+		
+	next everyCommand
+
+wend
+
+CloseWindow()
+
+end
+
+
+
+
+

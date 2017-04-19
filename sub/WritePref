@@ -1,0 +1,9 @@
+sub WritePref()
+	MWxpos=Window Get "MainWindow", "Position-X"
+	MWypos=Window Get "MainWindow", "Position-Y"
+	open Settingsfile$ for writing as #1
+	print #1 destpathname$
+	print #1 MWxpos
+	print #1 MWypos
+	close #1
+end sub

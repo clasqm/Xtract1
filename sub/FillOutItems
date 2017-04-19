@@ -1,0 +1,34 @@
+sub FillOutItems()
+	local dothis$, zipitem$, tempfilepath$
+	if IsItAZip() = 1 then
+		Option set "ExtractButton", "isenabled", 1
+		tooltip "ExtractButton", "Extract the selected file\n to the selected directory."
+	else
+		return
+	endif
+	tempfilepath$ = system$("finddir B_COMMON_TEMP_DIRECTORY")
+	tempfilepath$ = left$(tempfilepath$, len(tempfilepath$ )-1) // strip off triling newline
+	tempfilepath$ =tempfilepath$ + "/ExtractOne.tmp"
+	Listbox Clear "CollList"
+	dothis$ = "zipinfo -1 " + chr$(39) + filename$ + chr$(39)+ ">" + tempfilepath$ 
+	system(dothis$)
+	open tempfilepath$ for reading as #1
+	while (not eof(1))
+		line input #1 zipitem$
+		Listbox Add "CollList", zipitem$
+	wend
+	Listbox Select "CollList", 1: itemselected = 1
+	close #1
+	dothis$ = "rm  " + tempfilepath$
+	system(dothis$)
+end sub
+
+
+
+
+
+
+
+
+
+

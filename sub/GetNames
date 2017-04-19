@@ -1,0 +1,21 @@
+sub GetNames(passedfilename$)
+	local counter, shortname$
+	filename$= passedfilename$
+	counter=len(filename$)
+	for f = len(filename$) to 1 step -1
+		if mid$(filename$, f,1) = "/" then
+			break:break
+		else
+			counter= counter -1
+		end if
+		shortname$= mid$(filename$, counter +1)
+		if lower$(right$(shortname$, 4))= ".zip" shortname$= left$(shortname$, len(shortname$) - 4)
+		window set "MainWindow", "Title", "Xtract1: " + shortname$
+	next f
+end Sub
+
+
+
+
+
+

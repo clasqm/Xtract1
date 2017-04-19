@@ -1,0 +1,9 @@
+sub StripBackspaces$(passedfilename$)
+	local counter, resultingname$
+	if instr(passedfilename$, "\\") = 0 return passedfilename$
+	counter = len(passedfilename$)
+	for f = 1 to counter
+		if mid$(passedfilename$, f, 1) <> "\\" resultingname$ = resultingname$ + mid$(passedfilename$, f, 1)
+	next f
+	return resultingname$
+end sub

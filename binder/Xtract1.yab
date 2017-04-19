@@ -1,0 +1,283 @@
+#!env yab
+
+//Xtract1
+//Program to extract a single file from a Zip file
+
+//Michel Clasquin-Johnson
+//Public Domain Software 2009-2014
+
+//GLOBAL VARIABLES - just for reference: yab does not demand declaration of these
+everyCommand=1 // counter for main loop
+itemselected=1 // item selected in list
+filename$ = ""
+destpathname$="/boot/home/Desktop"
+Settingsfile$ = "/boot/home/config/settings/ExtractOne.settings"
+UpdateFile$ = "http://mysite.mweb.co.za/residents/clasqm/haiku/yab-apps/XTract1version.txt"
+AppVersion$ = "v0.4.1"
+
+//Housekeeping
+//put MainWindow size coordinates in variables
+MWxsize = 300
+MWysize = 175
+//see if a settings file exist. If so, read positions
+CheckFirstUse()
+
+// set DEBUG = 1 to print out all messages on the console
+DEBUG = 0
+
+//Create Interface
+OpenWindow()
+
+if peek("argument") > 0 then
+	filename$ = peek$("argument")
+	filename$ = StripBackspaces$(filename$)
+	GetNames(filename$)
+	FillOutItems()
+endif
+
+FindUpdates()
+
+// Main Message Loop
+dim msg$(1)
+while(not leavingLoop)
+	nCommands = token(message$, msg$(), "|")
+
+	for everyCommand = 1 to nCommands
+		if(DEBUG and msg$(everyCommand)<>"") print msg$(everyCommand)
+
+		switch(msg$(everyCommand))
+			case "_QuitRequested":
+			case "MainWindow:_QuitRequested":
+				//first save window position and last directory
+				WritePref()
+				leavingLoop = true
+				break
+			case "DirButton"
+				destpathname$= Filepanel "Load-Directory", "Select extraction directory", destpathname$
+				if destpathname$ <>"" then
+					AddToDropbox()
+					WritePref()
+				endif
+				break
+			case "ExtractButton"
+				UnzipFile()
+				break
+			default:
+				break
+		end switch
+
+	//Some actions that don't lend themselves to the switch loop
+		if left$(msg$(everyCommand),9)="CollList:" then
+			itemselected= Listbox Get "CollList"
+		endif
+		if left$(msg$(everyCommand),18) ="DropHere:_Dropped:" then
+			GetNames(mid$(msg$(everyCommand),19))
+			FillOutItems()
+		endif
+		if left$(msg$(everyCommand),10) ="DirPicker:" then 
+			destpathname$ = mid$(msg$(everyCommand),11)
+			WritePref()
+		endif
+		
+	next everyCommand
+
+wend
+
+CloseWindow()
+
+end
+
+
+
+
+
+sub AddToDropbox()
+	Dropbox Add "DirPicker", destpathname$
+	Dropbox Select "DirPicker", dropbox count "DirPicker"
+end sub
+
+
+
+
+
+sub CheckFirstUse()
+	local settingsexist$
+	settingsexist$=system$("if test -e /boot/home/config/settings/ExtractOne.settings; then echo yes; else echo no;fi")
+	//if the settings file does not exist, program has not run before
+	if left$(settingsexist$,2)= "no" then
+		return
+	elseif left$(settingsexist$,3)="yes" then
+		open Settingsfile$ for reading as #1
+		line input #1 destpathname$
+		line input #1 MWxpos
+		line input #1 MWypos
+		close #1
+	end if
+	if destpathname$=STR$(MWxpos) or destpathname$=STR$(MWypos)then 	// if upgrading from previous version that
+		destpathname$="/boot/home/Desktop"								//only saved destpathname$
+		MWxpos=200
+		MWypos=200
+	endif 
+		if MWxpos = 0 or MWypos = 0 then //ie if the settings file was empty or non-existent
+		MWxpos = 200
+		MWypos = 200
+	endif
+	//check if user has started program in a lower-resolution workspace
+	//and correct position if necessary
+	if MWxpos > peek("Desktopwidth") MWxpos = 200
+	if MWypos > peek("Desktopheight") MWypos = 200
+end sub
+
+
+
+
+
+
+// Close down the main window
+sub CloseWindow()
+	window close "MainWindow"
+	return
+end sub
+
+
+sub FillOutItems()
+	local dothis$, zipitem$, tempfilepath$
+	if IsItAZip() = 1 then
+		Option set "ExtractButton", "isenabled", 1
+		tooltip "ExtractButton", "Extract the selected file\n to the selected directory."
+	else
+		return
+	endif
+	tempfilepath$ = system$("finddir B_COMMON_TEMP_DIRECTORY")
+	tempfilepath$ = left$(tempfilepath$, len(tempfilepath$ )-1) // strip off triling newline
+	tempfilepath$ =tempfilepath$ + "/ExtractOne.tmp"
+	Listbox Clear "CollList"
+	dothis$ = "zipinfo -1 " + chr$(39) + filename$ + chr$(39)+ ">" + tempfilepath$ 
+	system(dothis$)
+	open tempfilepath$ for reading as #1
+	while (not eof(1))
+		line input #1 zipitem$
+		Listbox Add "CollList", zipitem$
+	wend
+	Listbox Select "CollList", 1: itemselected = 1
+	close #1
+	dothis$ = "rm  " + tempfilepath$
+	system(dothis$)
+end sub
+
+
+
+
+
+
+
+
+
+
+sub FindUpdates()
+	local version$,selector
+	version$ = system$("curl --connect-timeout 1 " + UpdateFile$)
+	if left$(version$,1)<>"v" return
+	if version$ <> AppVersion$ then
+		selector = alert "A newer version of this program is available. Take  a look?", "Yes", "No", "", "info"
+		if selector = 1 launch "http://mysite.mweb.co.za/residents/clasqm/haiku/yab-apps/index.html"
+	endif
+end sub
+
+sub GetNames(passedfilename$)
+	local counter, shortname$
+	filename$= passedfilename$
+	counter=len(filename$)
+	for f = len(filename$) to 1 step -1
+		if mid$(filename$, f,1) = "/" then
+			break:break
+		else
+			counter= counter -1
+		end if
+		shortname$= mid$(filename$, counter +1)
+		if lower$(right$(shortname$, 4))= ".zip" shortname$= left$(shortname$, len(shortname$) - 4)
+		window set "MainWindow", "Title", "Xtract1: " + shortname$
+	next f
+end Sub
+
+
+
+
+
+
+sub IsItAZip()
+	system("mimeset -f " + chr$(39) + filename$ + chr$(39))
+	if (left$(system$("catattr -d BEOS:TYPE '" + filename$ + "'"), 15)) <> "application/zip" then 
+		alert filename$ + "\n does not look like a zip file! Please check and fix in Tracker", "OK", "warning"
+		return 0
+	else
+		return 1
+	endif
+end sub
+sub MakeMenu()
+	//Create menu in MainWindow
+	menu "File", "Quit", "Q", "MainWindow"
+	menu "Help", "About", "", "MainWindow"
+end sub
+
+// Setup the main window here
+sub OpenWindow()
+	window open MWxpos,MWypos to (MWxsize + MWxpos),(MWysize + MWypos), "MainWindow", "Xtract1"
+	window set "MainWindow", "Flags", "Not-Resizable, Not-Zoomable"
+	Text 15,8,"uptext", "Drop zip file & select destination directory", "MainWindow"
+	DropBox 0,25 to 200,49, "DirPicker", "", "MainWindow"
+	tooltip "DirPicker", "Select a previously used directory."
+	DropBox Add "DirPicker", "/boot/home/Desktop"
+	DropBox Add "DirPicker", "/boot/home"
+	if destpathname$ <> "/boot/home/Desktop" AddToDropbox()
+	Button 201, 25 to 299,49, "DirButton", "Select Dir", "MainWindow"
+	tooltip "DirButton", "Select a new extraction destination"
+	ListBox 1,54 to 299,148, "CollList", 1, "MainWindow"
+	Button 152,150 to 300,175, "ExtractButton", "Extract this file", "MainWindow"
+	Option set "ExtractButton", "isenabled", 0
+	view 0, 150 to 150,175, "DropHere", "MainWindow"
+	View Dropzone "DropHere"
+	Draw Set 1, "HighSolidFill"
+	Draw Rect 1,1 to 150,24, "DropHere"
+	Text 20, 7, "dropheretext", "Drop zip file HERE", "DropHere"
+	tooltip "DropHere", "Drop the zip file here."
+end sub
+
+
+
+
+sub StripBackspaces$(passedfilename$)
+	local counter, resultingname$
+	if instr(passedfilename$, "\\") = 0 return passedfilename$
+	counter = len(passedfilename$)
+	for f = 1 to counter
+		if mid$(passedfilename$, f, 1) <> "\\" resultingname$ = resultingname$ + mid$(passedfilename$, f, 1)
+	next f
+	return resultingname$
+end sub
+sub UnzipFile()
+	local dothis$, itemselected$
+	itemselected$= Listbox Get$ "CollList", itemselected
+	if instr(itemselected$,chr$(39)) <>0 then
+		alert "Filename contains quotation marks and cannot be unzipped by this program. Sorry.", "OK", "Info"
+		return
+	endif
+	dothis$ = "unzip -oj "+ chr$(39) + filename$ + chr$(39) + " " + chr$(39) + itemselected$  + chr$(39) + " -d " + chr$(39) + destpathname$ + chr$(39)
+	system(dothis$)
+	dothis$ = "/boot/system/Tracker " +chr$(39) + destpathname$ + chr$(39)
+	system(dothis$)
+	//This will do nothing if extracting to Desktop, since desktop is already open
+end sub
+
+
+
+
+sub WritePref()
+	MWxpos=Window Get "MainWindow", "Position-X"
+	MWypos=Window Get "MainWindow", "Position-Y"
+	open Settingsfile$ for writing as #1
+	print #1 destpathname$
+	print #1 MWxpos
+	print #1 MWypos
+	close #1
+end sub

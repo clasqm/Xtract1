@@ -1,0 +1,26 @@
+name				Xtract1
+version				0.4.1-6
+architecture			x86_gcc2
+
+summary			"Single file .zip extractor"
+Description			"Single file .zip extractor that lets you grab a single file from a zip archive and place it precisely where you want it without duplicating the entire directory structure inside the .zip.
+
+Menu position: Applications | System & Utilities
+"
+
+packager			"Michel Clasquin-Johnson <clasqm@gmail.com>"
+vendor				"clasqm"
+
+copyrights			"clasqm"
+licenses				"Public Domain"
+
+provides {			
+					Xtract1 = 0.4.1-6
+}
+requires {
+					haiku>=r1~alpha4_pm_hrev50032-1
+					yab>=1.7.5.2
+}
+urls {
+				http://clasquin-johnson.co.za/michel/haiku
+}

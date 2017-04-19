@@ -1,0 +1,33 @@
+sub CheckFirstUse()
+	local settingsexist$
+	settingsexist$=system$("if test -e /boot/home/config/settings/ExtractOne.settings; then echo yes; else echo no;fi")
+	//if the settings file does not exist, program has not run before
+	if left$(settingsexist$,2)= "no" then
+		return
+	elseif left$(settingsexist$,3)="yes" then
+		open Settingsfile$ for reading as #1
+		line input #1 destpathname$
+		line input #1 MWxpos
+		line input #1 MWypos
+		close #1
+	end if
+	if destpathname$=STR$(MWxpos) or destpathname$=STR$(MWypos)then 	// if upgrading from previous version that
+		destpathname$="/boot/home/Desktop"								//only saved destpathname$
+		MWxpos=200
+		MWypos=200
+	endif 
+		if MWxpos = 0 or MWypos = 0 then //ie if the settings file was empty or non-existent
+		MWxpos = 200
+		MWypos = 200
+	endif
+	//check if user has started program in a lower-resolution workspace
+	//and correct position if necessary
+	if MWxpos > peek("Desktopwidth") MWxpos = 200
+	if MWypos > peek("Desktopheight") MWypos = 200
+end sub
+
+
+
+
+
+

@@ -1,0 +1,11 @@
+#!/bin/sh
+cd /boot/home/projects/ports/xtract1
+package create -b xtract1_0.4.1-6_gcc2.hpkg
+sleep 0.5
+package add xtract1_0.4.1-6_gcc2.hpkg data apps
+sleep 0.5
+addattr BeShare:Info "Single file .zip extractor" xtract1_0.4.1-6_gcc2.hpkg
+becopy xtract1_0.4.1-6_gcc2.hpkg "/Storage/Haiku/My ports"
+mv xtract1_0.4.1-6_gcc2.hpkg /boot/home/projects/repo
+
+sync
